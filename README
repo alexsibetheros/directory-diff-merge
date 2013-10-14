@@ -1,0 +1,51 @@
+Alexander Sibetheros
+AM: 1115200900261
+
+Exercise 4
+
+Run on personal computer: Ubuntu Linux (10.04,10.10) and linux05(and 015).di.uoa.gr
+Makefile compiles each source file seperatley and will only update a file if neccessary.
+Clean is also available in makefile(deletes all .o ).
+Code is almost 100% my own, I used the copy function from IOMATERIAL.pdf with minor changes.
+
+A few notes:
+-Basic checks are implemented wherever I could remember them and have the respective error.
+-If user gives wrong inline arguments, program will show the correct format and then exit.
+-Mostly dynamic memory allocation is used, in fear that paths might get extremely long if folder deep enough inside system and specifically with realpath enabled at various points. 
+-An importan feature in this program is that all paths are relative and I carry the starting directories throughout the program, adding them to the path(which changes for many reasons) when I need them, but have everything in parts. In this manner I can create the path of directoryA and directoryB with 2 small function calls(instead of carring around information for both paths and cutting and pasting when I need only the relative path).
+
+
+
+The list I implemented is a normal linked list(with terminating NULL) and create 3 lists throughout the program.
+The fringe list(named: start) is used inside differences to hold all the folders found in both sources, 
+to allow search through the folders(with looping techniques and not recursion). Two such lists are created because differences is called twice.
+The other list is inode_list(name the same) which is created only when merge is enabled and holds the inode numbers of all files written to the destination,
+allowing me to check everytime before adding a file to destination. If the inode already exists, the current file is a hardlink to something already inside,
+thus all I have to do is link it to that file(which the path leads me too). Otherwise, create the file in the destination and hold the inode(and path) in the list.
+
+The core of the program is basically two calls of differences(), with reversed arguments.
+DIFFERENCES started out as only the diff between the two, but later on I added merge to allow the creation of dirC to happen at the same time,
+instead of after finding all the differences. 
+The two calls of the function is done to allow the differences of source1 to source2 and reversed(the same is true for merge).
+Depending on what the user gives as inline arguments, the option flag is raised or not(signaling merge or not).
+Much care must be given when running function the second time, when source1 and source2 are reversed, because names remaing dirA,dirB although the are the opposite.
+Inode_list is created(and destroyed) outside of function because both will use the same. This is so because the second call will try to write to directory destination and program must check tha inodes dont already exist before writing. This shoudln't be an issue since files(based on exercise instructions) only work inside their own directory, but no harm is done.
+Differences function is split into 2 importan parts. Part one opens the dirA(source1 in call1 and source2 in call2) and runs through all its imideate children.
+For every child, it checks to see if it already exists in dirB or not.
+Depending on whether it exists or not, various actions are applied(this is much easier to see inside code, where the comments guide one very easily through the various situations.)
+The second part is for everything other than first layer, but only works me the folders that are common between the two sources. Folders/files/links that are not common are added automatically to the differences and also passed into merge.
+The second part loops through the fringe and for every folder does exactly the same as above for dirA.
+The difference between the two loops(dirA and fringe) is that paths in dirA are the current file/folder/link we are working with , while in fringe paths are relative to the path of the folder+ the current file/folder/link. It would be easy to impliment part one into part two, but I found it much easier to do this way. 
+
+The other important function of this program is COMPARE.
+Compare takes the two sources and a path(path exists in both sources). By sticking together the path with each directory, compare tries to see if the two paths lead to something 100% identical.
+If the two paths are both folders then automatically they are the same(name is inside path, which are the same).
+If both files, then only filesize is needed.
+In call cases that the two are of different types(file-folder, file-link...) then automatically the are different.
+And finally, if both are links, first we read content of links, then we santize it with realpath(remove ../ and ./ ) and then strcmp to see if exactly the same. If the same, 1 more compare is need(call compare again with arguments the two strings) that will check if the two files are the same or not. I say files and not links because realpath returns the path to the final file, so no links are possible and from the exercise instructions, links only link to files(or other links) and not directories.
+ 
+Other than the two core functions many smaller functions for specific goals are available in functions.c .
+Functions inside this source file vary from printing folders and subfolders, to adding files, link,fodlers to the destination directory, or choosing which file/link/folder is the newest.. and many more.
+Each function has a small comment explaining in short the basic of that function. 
+
+
